@@ -9,6 +9,6 @@ jobs:
       uses: HurricanKai/Publish-Docker-Github-Action@master
       with:
         name: docker.pkg.github.com/hurricankai/publish-docker-github-action/publish-docker-github-action
-        username: ${{ secrets.GITHUB_DOCKER_PASSWORD }}
-        password: ${{ secrets. GITHUB_DOCKER_USERNAME }}
+        username: ${{ secrets.GITHUB_DOCKER_USERNAME }}
+        password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
