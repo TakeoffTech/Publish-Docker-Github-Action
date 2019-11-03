@@ -44,6 +44,20 @@ with:
   registry: docker.pkg.github.com
 ```
 
+### tagging
+
+Use `tagging` to push an additional image, which is tagged with GITHUB_TAG.
+When you would like to think about versioning images, this might be useful.
+
+```yaml
+if: contains(github.ref, 'refs/tags/v')
+with:
+  name: myDocker/repository
+  username: ${{ secrets.DOCKER_USERNAME }}
+  password: ${{ secrets.DOCKER_PASSWORD }}
+  tagging: true
+```
+
 ### snapshot
 Use `snapshot` to push an additional image, which is tagged with {YEAR}{MONTH}{DAY}{HOUR}{MINUTE}{SECOND}{first 6 digits of the git sha}.  
 The date was inserted to prevent new builds with external dependencies override older builds with the same sha.
