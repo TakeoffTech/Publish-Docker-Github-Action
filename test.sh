@@ -120,6 +120,25 @@ Called mock with: logout"
   cleanEnvironment
 }
 
+function itPushesSpecificDockerfilePathReleasesToLatest() {
+  export GITHUB_REF='refs/tags/myRelease'
+  export INPUT_DOCKERFILE='path/to/MyDockerFileName'
+  export INPUT_USERNAME='USERNAME'
+  export INPUT_PASSWORD='PASSWORD'
+  export INPUT_NAME='my/repository'
+  local result=$(exec /entrypoint.sh)
+  local expected="Called mock with: login -u USERNAME --password-stdin
+Called mock with: build -f path/to/MyDockerFileName -t my/repository:latest path/to
+Called mock with: push my/repository:latest
+Called mock with: logout"
+  if [ "$result" != "$expected" ]; then
+    echo "Expected: $expected
+    Got: $result"
+    exit 1
+  fi
+  cleanEnvironment
+}
+
 function itPushesBranchByShaAndDateInAddition() {
   export GITHUB_REF='refs/tags/myRelease'
   export INPUT_SNAPSHOT='true'
@@ -318,6 +337,7 @@ itPushesMasterBranchToLatest
 itPushesBranchAsNameOfTheBranch
 itPushesReleasesToLatest
 itPushesSpecificDockerfileReleasesToLatest
+itPushesSpecificDockerfilePathReleasesToLatest
 itPushesBranchByShaAndDateInAddition
 itCachesImageFromFormerBuildAndUsesItForSnapshotIfConfigured
 itPushesBranchByShaAndDateInAdditionWithSpecificDockerfile

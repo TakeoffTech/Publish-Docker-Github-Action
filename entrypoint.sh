@@ -44,6 +44,11 @@ fi
 
 if [ ! -z "${INPUT_DOCKERFILE}" ]; then
   BUILDPARAMS="$BUILDPARAMS -f ${INPUT_DOCKERFILE}"
+  # trims the '/Dockerfile' from path/to/Dockerfile 
+  CONTEXT=${INPUT_DOCKERFILE%/*}
+  if [ "${INPUT_DOCKERFILE}" == "${CONTEXT}" ]; then CONTEXT="."; fi
+else
+  CONTEXT="."
 fi
 
 if [ ! -z "${INPUT_CACHE}" ]; then
@@ -55,16 +60,16 @@ if [ "${INPUT_SNAPSHOT}" == "true" ]; then
   timestamp=`date +%Y%m%d%H%M%S`
   shortSha=$(echo "${GITHUB_SHA}" | cut -c1-6)
   SHA_DOCKER_NAME="${INPUT_NAME}:${timestamp}${shortSha}"
-  docker build $BUILDPARAMS -t ${DOCKERNAME} -t ${SHA_DOCKER_NAME} .
+  docker build $BUILDPARAMS -t ${DOCKERNAME} -t ${SHA_DOCKER_NAME} ${CONTEXT}
   docker push ${DOCKERNAME}
   docker push ${SHA_DOCKER_NAME}
 elif [ "${INPUT_TAGGING}" == "true" ]; then
   DOCKER_TAG=$(echo ${GITHUB_REF} | sed -e 's/refs\/tags\/v//')
-  docker build $BUILDPARAMS -t ${INPUT_NAME}:latest -t ${INPUT_NAME}:${DOCKER_TAG} .
+  docker build $BUILDPARAMS -t ${INPUT_NAME}:latest -t ${INPUT_NAME}:${DOCKER_TAG} ${CONTEXT}
   docker push ${INPUT_NAME}:latest
   docker push ${INPUT_NAME}:${DOCKER_TAG}
 else
-  docker build $BUILDPARAMS -t ${DOCKERNAME} .
+  docker build $BUILDPARAMS -t ${DOCKERNAME} ${CONTEXT}
   docker push ${DOCKERNAME}
 fi
 
