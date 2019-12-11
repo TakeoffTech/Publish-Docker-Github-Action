@@ -4,8 +4,8 @@ LABEL "com.github.actions.description"="Uses the git branch as the docker tag an
 LABEL "com.github.actions.icon"="anchor"
 LABEL "com.github.actions.color"="blue"
 
-LABEL "repository"="https://github.com/HurricanKai/Publish-Docker-Github-Action/"
-LABEL "maintainer"="Kai Jellinghaus"
+LABEL "repository"="https://github.com/TakeoffTech/Publish-Docker-Github-Action/"
+LABEL "maintainer"="SRE"
 
 RUN apk update \
   && apk upgrade \

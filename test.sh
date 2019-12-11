@@ -7,6 +7,47 @@ function cleanEnvironment() {
   unset INPUT_REGISTRY
   unset INPUT_CACHE
   unset GITHUB_SHA
+  unset GITHUB_REPOSITORY
+}
+
+function itPushesToGitHubRegistry() {
+  export GITHUB_REF='refs/heads/master'
+  export GITHUB_REPOSITORY='SomeOrg/SomeRepo'
+  export INPUT_USERNAME='USERNAME'
+  export INPUT_PASSWORD='PASSWORD'
+  export INPUT_NAME='container'
+  export INPUT_REGISTRY='docker.pkg.github.com'
+  local result=$(exec /entrypoint.sh)
+  local expected="Called mock with: login -u USERNAME --password-stdin docker.pkg.github.com
+Called mock with: build -t docker.pkg.github.com/someorg/somerepo/container:latest .
+Called mock with: push docker.pkg.github.com/someorg/somerepo/container:latest
+Called mock with: logout"
+  if [ "$result" != "$expected" ]; then
+    echo "Expected: $expected
+    Got: $result"
+    exit 1
+  fi
+cleanEnvironment
+}
+
+function itPushesToGitHubRegistryBranch() {
+  export GITHUB_REF='refs/heads/test/branch'
+  export GITHUB_REPOSITORY='SomeOrg/SomeRepo'
+  export INPUT_USERNAME='USERNAME'
+  export INPUT_PASSWORD='PASSWORD'
+  export INPUT_NAME='container'
+  export INPUT_REGISTRY='docker.pkg.github.com'
+  local result=$(exec /entrypoint.sh)
+  local expected="Called mock with: login -u USERNAME --password-stdin docker.pkg.github.com
+Called mock with: build -t docker.pkg.github.com/someorg/somerepo/container:branch .
+Called mock with: push docker.pkg.github.com/someorg/somerepo/container:branch
+Called mock with: logout"
+  if [ "$result" != "$expected" ]; then
+    echo "Expected: $expected
+    Got: $result"
+    exit 1
+  fi
+cleanEnvironment
 }
 
 function itPushesMasterBranchToLatest() {
@@ -271,6 +312,8 @@ function itErrorsWhenPasswordWasNotSet() {
   fi
 }
 
+itPushesToGitHubRegistry
+itPushesToGitHubRegistryBranch
 itPushesMasterBranchToLatest
 itPushesBranchAsNameOfTheBranch
 itPushesReleasesToLatest

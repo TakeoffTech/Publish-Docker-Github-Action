@@ -16,7 +16,7 @@ if [ -z "${INPUT_PASSWORD}" ]; then
   exit 1
 fi
 
-BRANCH=$(echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g")
+BRANCH=${GITHUB_REF##refs/*/}
 
 if [ "${BRANCH}" == "master" ]; then
   BRANCH="latest"
@@ -29,7 +29,13 @@ fi;
 
 echo ${INPUT_PASSWORD} | docker login -u ${INPUT_USERNAME} --password-stdin ${INPUT_REGISTRY}
 
-DOCKERNAME="${INPUT_NAME}:${BRANCH}"
+if [ "${INPUT_REGISTRY}" == "docker.pkg.github.com" ]; then
+  BASE_NAME="${INPUT_REGISTRY}/$(echo ${GITHUB_REPOSITORY} | tr "[:upper:]" "[:lower:]")/${INPUT_NAME}"
+else
+  BASE_NAME="${INPUT_NAME}"
+fi
+
+DOCKERNAME="${BASE_NAME}:${BRANCH}"
 BUILDPARAMS="${INPUT_EXTRA_BUILD_PARAMS}"
 
 if [ ! -z "${INPUT_DOCKERNAME_APPENDIX}" ]; then
