@@ -1,5 +1,7 @@
 name: Integration Test
-on: [push]
+on:
+  repository_dispatch:
+    types: do-something
 jobs:
   build:
     runs-on: ubuntu-latest
