@@ -63,14 +63,20 @@ if [ "${INPUT_SNAPSHOT}" == "true" ]; then
   docker build $BUILDPARAMS -t ${DOCKERNAME} -t ${SHA_DOCKER_NAME} ${CONTEXT}
   docker push ${DOCKERNAME}
   docker push ${SHA_DOCKER_NAME}
+  echo "::set-output name=IMAGE_SHA_NAME::${SHA_DOCKER_NAME}"
+  IMAGE_URL="${DOCKERNAME}"
 elif [ "${INPUT_TAGGING}" == "true" ]; then
   DOCKER_TAG=$(echo ${GITHUB_REF} | sed -e 's/refs\/tags\/v//')
   docker build $BUILDPARAMS -t ${BASE_NAME}:latest -t ${BASE_NAME}:${DOCKER_TAG} ${CONTEXT}
   docker push ${BASE_NAME}:latest
   docker push ${BASE_NAME}:${DOCKER_TAG}
+  IMAGE_URL="${BASE_NAME}:${DOCKER_TAG}"
 else
   docker build $BUILDPARAMS -t ${DOCKERNAME} ${CONTEXT}
   docker push ${DOCKERNAME}
+  IMAGE_URL="${DOCKERNAME}"
 fi
 
 docker logout
+
+echo "::set-output name=IMAGE_URL::${IMAGE_URL}"
