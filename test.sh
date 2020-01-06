@@ -21,7 +21,8 @@ function itPushesToGitHubRegistry() {
   local expected="Called mock with: login -u USERNAME --password-stdin docker.pkg.github.com
 Called mock with: build -t docker.pkg.github.com/someorg/somerepo/container:latest .
 Called mock with: push docker.pkg.github.com/someorg/somerepo/container:latest
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::docker.pkg.github.com/someorg/somerepo/container:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -41,7 +42,8 @@ function itPushesToGitHubRegistryBranch() {
   local expected="Called mock with: login -u USERNAME --password-stdin docker.pkg.github.com
 Called mock with: build -t docker.pkg.github.com/someorg/somerepo/container:branch .
 Called mock with: push docker.pkg.github.com/someorg/somerepo/container:branch
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::docker.pkg.github.com/someorg/somerepo/container:branch"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -59,7 +61,8 @@ function itPushesMasterBranchToLatest() {
   local expected="Called mock with: login -u USERNAME --password-stdin
 Called mock with: build -t my/repository:latest .
 Called mock with: push my/repository:latest
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -76,7 +79,8 @@ function itPushesBranchAsNameOfTheBranch() {
   local expected="Called mock with: login -u USERNAME --password-stdin
 Called mock with: build -t my/repository:myBranch .
 Called mock with: push my/repository:myBranch
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:myBranch"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -93,7 +97,8 @@ function itPushesReleasesToLatest() {
   local expected="Called mock with: login -u USERNAME --password-stdin
 Called mock with: build -t my/repository:latest .
 Called mock with: push my/repository:latest
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -111,7 +116,8 @@ function itPushesSpecificDockerfileReleasesToLatest() {
   local expected="Called mock with: login -u USERNAME --password-stdin
 Called mock with: build -f MyDockerFileName -t my/repository:latest .
 Called mock with: push my/repository:latest
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -130,7 +136,8 @@ function itPushesSpecificDockerfilePathReleasesToLatest() {
   local expected="Called mock with: login -u USERNAME --password-stdin
 Called mock with: build -f path/to/MyDockerFileName -t my/repository:latest path/to
 Called mock with: push my/repository:latest
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -152,7 +159,9 @@ function itPushesBranchByShaAndDateInAddition() {
 Called mock with: build -t my/repository:latest -t my/repository:19700101010112169e .
 Called mock with: push my/repository:latest
 Called mock with: push my/repository:19700101010112169e
-Called mock with: logout"
+::set-output name=IMAGE_SHA_NAME::my/repository:19700101010112169e
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -176,7 +185,9 @@ Called mock with: pull my/repository:latest
 Called mock with: build --cache-from my/repository:latest -t my/repository:latest -t my/repository:19700101010112169e .
 Called mock with: push my/repository:latest
 Called mock with: push my/repository:19700101010112169e
-Called mock with: logout"
+::set-output name=IMAGE_SHA_NAME::my/repository:19700101010112169e
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -199,7 +210,9 @@ function itPushesBranchByShaAndDateInAdditionWithSpecificDockerfile() {
 Called mock with: build -f MyDockerFileName -t my/repository:latest -t my/repository:19700101010112169e .
 Called mock with: push my/repository:latest
 Called mock with: push my/repository:19700101010112169e
-Called mock with: logout"
+::set-output name=IMAGE_SHA_NAME::my/repository:19700101010112169e
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -224,7 +237,9 @@ Called mock with: pull my/repository:latest
 Called mock with: build -f MyDockerFileName --cache-from my/repository:latest -t my/repository:latest -t my/repository:19700101010112169e .
 Called mock with: push my/repository:latest
 Called mock with: push my/repository:19700101010112169e
-Called mock with: logout"
+::set-output name=IMAGE_SHA_NAME::my/repository:19700101010112169e
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -247,7 +262,8 @@ Called mock with: pull my/repository:latest
 Called mock with: build -f MyDockerFileName --cache-from my/repository:latest -t my/repository:latest -t my/repository:0.5.0 .
 Called mock with: push my/repository:latest
 Called mock with: push my/repository:0.5.0
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:0.5.0"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -266,7 +282,8 @@ function itLogsIntoAnotherRegistryIfConfigured() {
   local expected="Called mock with: login -u USERNAME --password-stdin https://myRegistry
 Called mock with: build -t my/repository:latest .
 Called mock with: push my/repository:latest
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
@@ -286,7 +303,8 @@ function itCachesImageFromFormerBuildIfConfigured() {
 Called mock with: pull my/repository:latest
 Called mock with: build --cache-from my/repository:latest -t my/repository:latest .
 Called mock with: push my/repository:latest
-Called mock with: logout"
+Called mock with: logout
+::set-output name=IMAGE_URL::my/repository:latest"
   if [ "$result" != "$expected" ]; then
     echo "Expected: $expected
     Got: $result"
