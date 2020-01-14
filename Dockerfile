@@ -1,11 +1,7 @@
-FROM docker:19.03.1 as runtime
-LABEL "com.github.actions.name"="Build, Tag, Publish Docker"
-LABEL "com.github.actions.description"="Uses the git branch as the docker tag and pushes the container"
-LABEL "com.github.actions.icon"="anchor"
-LABEL "com.github.actions.color"="blue"
+FROM docker:19.03.2 as runtime
+LABEL "repository"="https://github.com/elgohr/Publish-Docker-Github-Action"
+LABEL "maintainer"="Lars Gohr"
 
-LABEL "repository"="https://github.com/TakeoffTech/Publish-Docker-Github-Action/"
-LABEL "maintainer"="SRE"
 
 RUN apk update \
   && apk upgrade \
@@ -14,12 +10,11 @@ RUN apk update \
 ADD entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
-FROM runtime as test
-ADD test.sh /test.sh
-ADD stub.sh /fake_bin/docker
-ADD mock.sh /fake_bin/date
-# Use mock instead of real docker
-ENV PATH="/fake_bin:usr/bin:/bin"
-RUN /test.sh
+FROM runtime as testEnv
+RUN apk add --no-cache coreutils bats
+ADD test.bats /test.bats
+ADD mock.sh /usr/local/bin/docker
+ADD mock.sh /usr/bin/date
+RUN /test.bats
 
 FROM runtime
