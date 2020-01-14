@@ -62,7 +62,7 @@ with:
 Publishing to github packages
 ```yaml
 with:
-  name: takeofftech/publish-docker-github-action/publish-docker-github-action
+  name: owner/repository/containername
   username: ${{ github.actor }}
   password: ${{ secrets.GITHUB_TOKEN }}
   registry: docker.pkg.github.com
