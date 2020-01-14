@@ -130,6 +130,35 @@ teardown() {
 /usr/local/bin/docker push my/repository:19700101010112169e"
 }
 
+@test "it pushes a flux tag with branch-sha in addition" {
+  export INPUT_ADDFLUXTAG='true'
+  export GITHUB_SHA='12169ed809255604e557a82617264e9c373faca7'
+
+  run /entrypoint.sh
+
+  expectStdOutContains "
+::set-output name=flux-tag::master-12169ed
+::set-output name=tag::latest"
+
+  expectMockCalled "/usr/local/bin/docker build -t my/repository:latest -t my/repository:master-12169ed .
+/usr/local/bin/docker push my/repository:latest
+/usr/local/bin/docker push my/repository:master-12169ed"
+}
+
+@test "it does not push a flux tag with branch-sha in addition" {
+  export INPUT_ADDFLUXTAG='false'
+  export GITHUB_SHA='12169ed809255604e557a82617264e9c373faca7'
+
+  run /entrypoint.sh
+
+  expectStdOutContains "
+::set-output name=tag::latest"
+
+  expectMockCalled "/usr/local/bin/docker build -t my/repository:latest .
+/usr/local/bin/docker push my/repository:latest"
+}
+
+
 @test "it does not push a snapshot by sha and date in addition when turned off" {
   export INPUT_SNAPSHOT='false'
   export GITHUB_SHA='12169ed809255604e557a82617264e9c373faca7'

@@ -58,14 +58,13 @@ with:
   password: ${{ secrets.DOCKER_PASSWORD }}
   registry: gcr.io
 ```
-#### docker.pkg.github.com registry
-When using the docker.pkg.github.com registry, there is logic to build the correct url based upon the name and repository to set the correct imagename to use docker.pkg.github.com.
 
+Publishing to github packages
 ```yaml
 with:
-  name: container
-  username: ${{ secrets.DOCKER_USERNAME }}
-  password: ${{ secrets.DOCKER_PASSWORD }}
+  name: takeofftech/publish-docker-github-action/publish-docker-github-action
+  username: ${{ github.actor }}
+  password: ${{ secrets.GITHUB_TOKEN }}
   registry: docker.pkg.github.com
 ```
 
@@ -90,6 +89,21 @@ Use `snapshot` to push an additional image, which is tagged with
 `{YEAR}{MONTH}{DAY}{HOUR}{MINUTE}{SECOND}{first 6 digits of the git sha}`.  
 The date was inserted to prevent new builds with external dependencies override older builds with the same sha.
 When you would like to think about versioning images, this might be useful.  
+
+```yaml
+with:
+  name: myDocker/repository
+  username: ${{ secrets.DOCKER_USERNAME }}
+  password: ${{ secrets.DOCKER_PASSWORD }}
+  snapshot: true
+```
+
+### addfluxtag
+Use `addfluxtag` to push an additional image, which is tagged with  
+`{branch name}-{first 7 digits of the git sha}`.  
+This should make a uniqe container tag to use for the FluxCD automation documented here:
+[https://docs.fluxcd.io/en/latest/references/automated-image-update.html]
+
 
 ```yaml
 with:

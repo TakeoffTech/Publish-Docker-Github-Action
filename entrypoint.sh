@@ -45,6 +45,9 @@ function main() {
   if usesBoolean "${INPUT_SNAPSHOT}"; then
     useSnapshot
   fi
+  if usesBoolean "${INPUT_ADDFLUXTAG}"; then
+    addFluxTag
+  fi
 
   push
 
@@ -78,6 +81,7 @@ function translateDockerTag() {
   elif isGitTag; then
     TAGS="latest"
   elif isPullRequest; then
+    local PR=$(echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g" | sed -e "s/\//-/g")
     TAGS="${GITHUB_SHA}"
   else
     TAGS="${BRANCH}"
@@ -135,6 +139,14 @@ function useSnapshot() {
   local SNAPSHOT_TAG="${TIMESTAMP}${SHORT_SHA}"
   TAGS="${TAGS} ${SNAPSHOT_TAG}"
   echo ::set-output name=snapshot-tag::"${SNAPSHOT_TAG}"
+}
+
+function addFluxTag() {
+  local BRANCH=$(echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g" | sed -e "s/\//-/g")
+  local SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+  local FLUX_TAG="${BRANCH}-${SHORT_SHA}"
+  TAGS="${TAGS} ${FLUX_TAG}"
+  echo ::set-output name=flux-tag::"${FLUX_TAG}"
 }
 
 function push() {
