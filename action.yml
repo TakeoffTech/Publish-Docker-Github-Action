@@ -35,6 +35,9 @@ inputs:
   cache:
     description: 'Use cache when you have big images, that you would only like to build partially'
     required: false
+  tags:
+    description: 'Use tags when you want to bring your own tags (separated by comma).'
+    required: false
   tag_names:
     description: 'Use tag_names when you want to push tags/release by their git name'
     required: false
