@@ -24,7 +24,7 @@ function main() {
   fi
   BRANCH=$(echo $BRANCH | sed -e "s/\//-/g")
   isOnMaster=$([ "${BRANCH}" == "master" ] && echo "true" || echo "false")
-  isReleaseBranch=$(! [ "${BRANCH/release\//}" = "${BRANCH}" ] && echo "true" || echo "false")
+  isReleaseBranch=$(! [ "${BRANCH/release-/}" = "${BRANCH}" ] && echo "true" || echo "false")
   isGitTag=$([ "${GITHUB_REF_TYPE}" == "tag" ] && echo "true" || echo "false")
   hasCustomTag=$([ $(echo "${INPUT_NAME}" | sed -e "s/://g") != "${INPUT_NAME}" ] && echo "true" || echo "false")
   # End globals
@@ -155,7 +155,7 @@ function addTomTag() {
     local DATESTAMP=$(TZ=UTC git show --quiet HEAD --date='format-local:%y-%m-%d' --format="%cd")
     local TOM_TAG="${DATESTAMP}.${GITHUB_RUN_NUMBER}"
   elif $isReleaseBranch; then
-    local TOM_TAG="${BRANCH//release\//}-hotfix"
+    local TOM_TAG="${BRANCH/release-/}-hotfix"
   elif $isPullRequest; then
     local TOM_TAG="${PR_NAME}.${GITHUB_RUN_NUMBER}"
   else
