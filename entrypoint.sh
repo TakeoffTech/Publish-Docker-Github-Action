@@ -8,10 +8,26 @@ function main() {
   sanitize "${INPUT_USERNAME}" "username"
   sanitize "${INPUT_PASSWORD}" "password"
 
+  # Set global booleans and values for use throughout script
   REGISTRY_NO_PROTOCOL=$(echo "${INPUT_REGISTRY}" | sed -e 's/^https:\/\///g')
   if uses "${INPUT_REGISTRY}" && ! isPartOfTheName "${REGISTRY_NO_PROTOCOL}"; then
     INPUT_NAME="${REGISTRY_NO_PROTOCOL}/${INPUT_NAME}"
   fi
+
+  SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+  isPullRequest=$(! [ "${GITHUB_REF/refs\/pull\//}" = "${GITHUB_REF}" ] && echo "true" || echo "false")
+  if $isPullRequest; then
+    BRANCH=$GITHUB_HEAD_REF
+    PR_NAME="PR$(echo $GITHUB_REF_NAME | cut -d '/' -f1)"
+  else
+    BRANCH=$GITHUB_REF_NAME
+  fi
+  BRANCH=$(echo $BRANCH | sed -e "s/\//-/g")
+  isOnMaster=$([ "${BRANCH}" == "master" ] && echo "true" || echo "false")
+  isReleaseBranch=$(! [ "${BRANCH/release\//}" = "${BRANCH}" ] && echo "true" || echo "false")
+  isGitTag=$([ "${GITHUB_REF_TYPE}" == "tag" ] && echo "true" || echo "false")
+  hasCustomTag=$([ $(echo "${INPUT_NAME}" | sed -e "s/://g") != "${INPUT_NAME}" ] && echo "true" || echo "false")
+  # End globals
 
   if uses "${INPUT_TAGS}"; then
     TAGS=$(echo "${INPUT_TAGS}" | sed "s/,/ /g")
@@ -22,21 +38,6 @@ function main() {
   if uses "${INPUT_WORKDIR}"; then
     changeWorkingDirectory
   fi
-
-  # Set up a bunch of Global Data
-  SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
-  isPullRequest=[ $(echo "${GITHUB_REF}" | sed -e "s/refs\/pull\///g") != "${GITHUB_REF}" ]
-  if $isPullRequest; then
-    BRANCH=$GITHUB_HEAD_REF
-    PR_NAME="PR$(echo $GITHUB_REF_NAME | cut -d '/' -f1)"
-  else
-    BRANCH=$GITHUB_REF_NAME
-  fi
-  BRANCH=$(echo $BRANCH | sed -e "s/\//-/g")
-  isOnMaster=[ "${BRANCH}" = "master" ]
-  isReleaseBranch=[[ $BRANCH =~ release.* ]]
-  isGitTag=[ "${GITHUB_REF_TYPE}" == "tag" ]
-  hasCustomTag=[ $(echo "${INPUT_NAME}" | sed -e "s/://g") != "${INPUT_NAME}" ]
 
   echo ${INPUT_PASSWORD} | docker login -u ${INPUT_USERNAME} --password-stdin ${INPUT_REGISTRY}
 
@@ -88,14 +89,14 @@ function isPartOfTheName() {
 }
 
 function translateDockerTag() {
-  if isPullRequest; then
+  if $isPullRequest; then
     TAGS="${GITHUB_SHA}"
-  elif hasCustomTag; then
+  elif $hasCustomTag; then
     TAGS=$(echo ${INPUT_NAME} | cut -d':' -f2)
     INPUT_NAME=$(echo ${INPUT_NAME} | cut -d':' -f1)
-  elif isOnMaster; then
+  elif $isOnMaster; then
     TAGS="latest"
-  elif isGitTag; then
+  elif $isGitTag; then
     if usesBoolean "${INPUT_TAG_NAMES}"; then
       TAGS=$GITHUB_REF_NAME
     else
@@ -150,12 +151,12 @@ function addFluxTag() {
 }
 
 function addTomTag() {
-  if isOnMaster; then
+  if $isOnMaster; then
     local DATESTAMP=$(TZ=UTC git show --quiet HEAD --date='format-local:%y-%m-%d' --format="%cd")
     local TOM_TAG="${DATESTAMP}.${GITHUB_RUN_NUMBER}"
-  elif isReleaseBranch; then
+  elif $isReleaseBranch; then
     local TOM_TAG="${BRANCH//release\//}-hotfix"
-  elif isPullRequest; then
+  elif $isPullRequest; then
     local TOM_TAG="${PR_NAME}.${GITHUB_RUN_NUMBER}"
   else
     local TOM_TAG="${BRANCH}.${SHORT_SHA}"

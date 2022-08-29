@@ -8,6 +8,7 @@ setup(){
   ) > mockReturns
 
   export GITHUB_REF='refs/heads/master'
+  export GITHUB_REF_NAME='master'
   export INPUT_USERNAME='USERNAME'
   export INPUT_PASSWORD='PASSWORD'
   export INPUT_NAME='my/repository'
