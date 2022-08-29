@@ -154,10 +154,10 @@ function addTomTag() {
   if $isOnMaster; then
     local DATESTAMP=$(TZ=UTC git show --quiet HEAD --date='format-local:%y-%m-%d' --format="%cd")
     local TOM_TAG="${DATESTAMP}.${GITHUB_RUN_NUMBER}"
-  elif $isReleaseBranch; then
-    local TOM_TAG="${BRANCH/release-/}-hotfix"
   elif $isPullRequest; then
     local TOM_TAG="${PR_NAME}.${GITHUB_RUN_NUMBER}"
+  elif $isReleaseBranch; then
+    local TOM_TAG="${BRANCH/release-/}-hotfix"
   else
     local TOM_TAG="${BRANCH}.${SHORT_SHA}"
   fi
