@@ -23,6 +23,21 @@ function main() {
     changeWorkingDirectory
   fi
 
+  # Set up a bunch of Global Data
+  SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+  isPullRequest=[ $(echo "${GITHUB_REF}" | sed -e "s/refs\/pull\///g") != "${GITHUB_REF}" ]
+  if $isPullRequest; then
+    BRANCH=$GITHUB_HEAD_REF
+    PR_NAME="PR$(echo $GITHUB_REF_NAME | cut -d '/' -f1)"
+  else
+    BRANCH=$GITHUB_REF_NAME
+  fi
+  BRANCH=$(echo $BRANCH | sed -e "s/\//-/g")
+  isOnMaster=[ "${BRANCH}" = "master" ]
+  isReleaseBranch=[[ $BRANCH =~ release.* ]]
+  isGitTag=[ "${GITHUB_REF_TYPE}" == "tag" ]
+  hasCustomTag=[ $(echo "${INPUT_NAME}" | sed -e "s/://g") != "${INPUT_NAME}" ]
+
   echo ${INPUT_PASSWORD} | docker login -u ${INPUT_USERNAME} --password-stdin ${INPUT_REGISTRY}
 
   FIRST_TAG=$(echo $TAGS | cut -d ' ' -f1)
@@ -48,6 +63,9 @@ function main() {
   if usesBoolean "${INPUT_ADDFLUXTAG}"; then
     addFluxTag
   fi
+  if usesBoolean "${INPUT_ADDTOMTAG}"; then
+    addTomTag
+  fi
 
   push
 
@@ -70,38 +88,22 @@ function isPartOfTheName() {
 }
 
 function translateDockerTag() {
-  local BRANCH=$(echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g" | sed -e "s/\//-/g")
-  if hasCustomTag; then
+  if isPullRequest; then
+    TAGS="${GITHUB_SHA}"
+  elif hasCustomTag; then
     TAGS=$(echo ${INPUT_NAME} | cut -d':' -f2)
     INPUT_NAME=$(echo ${INPUT_NAME} | cut -d':' -f1)
   elif isOnMaster; then
     TAGS="latest"
-  elif isGitTag && usesBoolean "${INPUT_TAG_NAMES}"; then
-    TAGS=$(echo ${GITHUB_REF} | sed -e "s/refs\/tags\///g")
   elif isGitTag; then
-    TAGS="latest"
-  elif isPullRequest; then
-    local PR=$(echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g" | sed -e "s/\//-/g")
-    TAGS="${GITHUB_SHA}"
+    if usesBoolean "${INPUT_TAG_NAMES}"; then
+      TAGS=$GITHUB_REF_NAME
+    else
+      TAGS="latest"
+    fi;
   else
     TAGS="${BRANCH}"
   fi;
-}
-
-function hasCustomTag() {
-  [ $(echo "${INPUT_NAME}" | sed -e "s/://g") != "${INPUT_NAME}" ]
-}
-
-function isOnMaster() {
-  [ "${BRANCH}" = "master" ]
-}
-
-function isGitTag() {
-  [ $(echo "${GITHUB_REF}" | sed -e "s/refs\/tags\///g") != "${GITHUB_REF}" ]
-}
-
-function isPullRequest() {
-  [ $(echo "${GITHUB_REF}" | sed -e "s/refs\/pull\///g") != "${GITHUB_REF}" ]
 }
 
 function changeWorkingDirectory() {
@@ -135,18 +137,31 @@ function usesBoolean() {
 
 function useSnapshot() {
   local TIMESTAMP=`date +%Y%m%d%H%M%S`
-  local SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-6)
-  local SNAPSHOT_TAG="${TIMESTAMP}${SHORT_SHA}"
+  local VSHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-6)
+  local SNAPSHOT_TAG="${TIMESTAMP}${VSHORT_SHA}"
   TAGS="${TAGS} ${SNAPSHOT_TAG}"
   echo ::set-output name=snapshot-tag::"${SNAPSHOT_TAG}"
 }
 
 function addFluxTag() {
-  local BRANCH=$(echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g" | sed -e "s/\//-/g")
-  local SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
   local FLUX_TAG="${BRANCH}-${SHORT_SHA}"
   TAGS="${TAGS} ${FLUX_TAG}"
   echo ::set-output name=flux-tag::"${FLUX_TAG}"
+}
+
+function addTomTag() {
+  if isOnMaster; then
+    local DATESTAMP=$(TZ=UTC git show --quiet HEAD --date='format-local:%y-%m-%d' --format="%cd")
+    local TOM_TAG="${DATESTAMP}.${GITHUB_RUN_NUMBER}"
+  elif isReleaseBranch; then
+    local TOM_TAG="${BRANCH//release\//}-hotfix"
+  elif isPullRequest; then
+    local TOM_TAG="${PR_NAME}.${GITHUB_RUN_NUMBER}"
+  else
+    local TOM_TAG="${BRANCH}.${SHORT_SHA}"
+  fi
+  TAGS="${TAGS} ${TOM_TAG}"
+  echo ::set-output name=tom-tag::"${TOM_TAG}"
 }
 
 function push() {
