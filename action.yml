@@ -23,6 +23,9 @@ inputs:
   addfluxtag:
     description: 'Create a FluxCD friendly tag for the branch and push to repository'
     required: false
+  addtomtag:
+    description: 'Create a TOM format tag for the branch and push to repository'
+    required: false
   dockerfile:
     description: 'Use dockerfile when you would like to explicitly build a Dockerfile'
     required: false

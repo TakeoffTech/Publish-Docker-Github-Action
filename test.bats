@@ -8,6 +8,7 @@ setup(){
   ) > mockReturns
 
   export GITHUB_REF='refs/heads/master'
+  export GITHUB_REF_NAME='master'
   export INPUT_USERNAME='USERNAME'
   export INPUT_PASSWORD='PASSWORD'
   export INPUT_NAME='my/repository'
@@ -26,6 +27,7 @@ teardown() {
 
 @test "it pushes master branch to latest" {
   export GITHUB_REF='refs/heads/master'
+  export GITHUB_REF_NAME='master'
 
   run /entrypoint.sh
 
@@ -40,6 +42,7 @@ teardown() {
 
 @test "it pushes branch as name of the branch" {
   export GITHUB_REF='refs/heads/myBranch'
+  export GITHUB_REF_NAME='myBranch'
 
   run /entrypoint.sh
 
@@ -51,6 +54,7 @@ teardown() {
 
 @test "it converts dashes in branch to hyphens" {
   export GITHUB_REF='refs/heads/myBranch/withDash'
+  export GITHUB_REF_NAME='myBranch/withDash'
 
   run /entrypoint.sh
 
@@ -62,6 +66,8 @@ teardown() {
 
 @test "it pushes tags to latest" {
   export GITHUB_REF='refs/tags/myRelease'
+  export GITHUB_REF_NAME='myRelease'
+  export GITHUB_REF_TYPE='tag'
 
   run /entrypoint.sh
 
@@ -76,6 +82,8 @@ teardown() {
 
 @test "with tag names it pushes tags using the name" {
   export GITHUB_REF='refs/tags/myRelease'
+  export GITHUB_REF_NAME='myRelease'
+  export GITHUB_REF_TYPE='tag'
   export INPUT_TAG_NAMES="true"
 
   run /entrypoint.sh
@@ -88,6 +96,8 @@ teardown() {
 
 @test "with tag names set to false it doesn't push tags using the name" {
   export GITHUB_REF='refs/tags/myRelease'
+  export GITHUB_REF_NAME='myRelease'
+  export GITHUB_REF_TYPE='tag'
   export INPUT_TAG_NAMES="false"
 
   run /entrypoint.sh
@@ -100,8 +110,10 @@ teardown() {
 
 @test "it pushes specific Dockerfile to latest" {
   export INPUT_DOCKERFILE='MyDockerFileName'
+  export GITHUB_REF='refs/heads/master'
+  export GITHUB_REF_NAME='master'
 
-  run /entrypoint.sh  export GITHUB_REF='refs/heads/master'
+  run /entrypoint.sh
 
   expectStdOutContains "::set-output name=tag::latest"
 
@@ -315,6 +327,7 @@ teardown() {
 
 @test "it pushes pull requests when configured" {
   export GITHUB_REF='refs/pull/24/merge'
+  export GITHUB_REF_NAME='24/merge'
   export GITHUB_SHA='12169ed809255604e557a82617264e9c373faca7'
   export INPUT_PULL_REQUESTS='true'
 
@@ -472,6 +485,7 @@ teardown() {
 
 @test "it provides a possibility to define multiple tags" {
   export GITHUB_REF='refs/heads/master'
+  export GITHUB_REF_NAME='master'
   export INPUT_TAGS='A,B,C'
 
   run /entrypoint.sh
@@ -487,6 +501,7 @@ teardown() {
 
 @test "it provides a possibility to define one tag" {
   export GITHUB_REF='refs/heads/master'
+  export GITHUB_REF_NAME='master'
   export INPUT_TAGS='A'
 
   run /entrypoint.sh
@@ -500,6 +515,7 @@ teardown() {
 
 @test "it caches the first image when multiple tags defined" {
   export GITHUB_REF='refs/heads/master'
+  export GITHUB_REF_NAME='master'
   export INPUT_TAGS='A,B'
   export INPUT_CACHE='true'
 
